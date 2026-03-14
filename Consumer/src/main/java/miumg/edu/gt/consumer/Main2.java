@@ -11,7 +11,9 @@ import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 
 public class Main2 {
-
+	
+	//Main2 basado en Main original para cola rechazados
+	
     private static final String RABBITMQ_HOST   = "localhost";
     private static final String POST_URL        =
         "https://7e0d9ogwzd.execute-api.us-east-1.amazonaws.com/default/guardarTransacciones";
@@ -71,7 +73,6 @@ public class Main2 {
                         }
 
                     } else {
-                        // ── RECHAZADA: enviar a cola_rechazados ───────────────
                         channel.basicPublish("", COLA_RECHAZADOS, null, mensaje.getBytes());
                         channel.basicAck(deliveryTag, false);
                         System.out.printf("[%s] ID: %-12s | Monto: Q%10.2f | Estado: RECHAZADA → cola_rechazados%n",
