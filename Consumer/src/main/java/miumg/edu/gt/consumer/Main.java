@@ -1,4 +1,4 @@
-package miumg.edu.gt.Main;
+package miumg.edu.gt.consumer;
 
 import miumg.edu.gt.model.TransaccionPost;
 import miumg.edu.gt.model.Transaccion;
@@ -20,7 +20,7 @@ public class Main {
     private static final String NOMBRE = "Carlo René Hermógenes Rivera Estrada";
     private static final String CARNET  = "0905-24-7010";
 
-    // Los 4 bancos que encontró el Producer
+    // Los 4 bancos
     private static final String[] COLAS = {"BANRURAL", "GYT", "BAC", "BI"};
 
     public static void main(String[] args) throws Exception {
@@ -35,7 +35,7 @@ public class Main {
         ObjectMapper mapper = new ObjectMapper();
         HttpClient httpClient = HttpClient.newHttpClient();
 
-        // Procesar de a 1 mensaje a la vez por canal
+        // Procesar 1 mensaje a la vez
         channel.basicQos(1);
 
         for (String cola : COLAS) {
@@ -48,29 +48,29 @@ public class Main {
                 String mensaje = new String(delivery.getBody(), StandardCharsets.UTF_8);
 
                 try {
-                    // 1. Deserializar JSON a objeto Java
+                    // Deserializar JSON
                     Transaccion transaccion = mapper.readValue(mensaje, Transaccion.class);
                     System.out.println("[" + cola + "] Procesando: " + transaccion.getIdTransaccion());
 
-                    // 2. Agregar nombre y carnet
+                    // Agregar nombre y carnet
                     TransaccionPost body = new TransaccionPost(transaccion, NOMBRE, CARNET);
 
-                    // 3. Enviar POST
+                    // Enviar POST
                     boolean exito = enviarPost(httpClient, mapper, body);
 
                     if (exito) {
-                        // 4. ACK solo si el POST fue exitoso
+                        // ACK solo si el POST fue exitoso
                         channel.basicAck(deliveryTag, false);
                         System.out.println("[" + cola + "] ACK enviado: " + transaccion.getIdTransaccion());
                     } else {
-                        // Reintento: devolver el mensaje a la cola
+                        // Devuelve el mensaje a la cola
                         System.err.println("[" + cola + "] POST falló, reintentando: " + transaccion.getIdTransaccion());
                         channel.basicNack(deliveryTag, false, true);
                     }
 
                 } catch (Exception e) {
                     System.err.println("[" + cola + "] ERROR procesando mensaje: " + e.getMessage());
-                    // Devolver a la cola para no perder el mensaje
+                    // Devolver para no perder el mensaje
                     channel.basicNack(deliveryTag, false, true);
                 }
             };
@@ -79,7 +79,6 @@ public class Main {
             channel.basicConsume(cola, false, callback, consumerTag -> {});
         }
 
-        // Mantener el Consumer vivo escuchando
         System.out.println("=== ESPERANDO MENSAJES (Ctrl+C para detener) ===");
         Thread.currentThread().join();
     }

@@ -11,7 +11,7 @@ public class TransaccionPost {
     private String nombre;
     private String carnet;
 
-    // Constructor desde Transaccion
+    // Constructor
     public TransaccionPost(Transaccion t, String nombre, String carnet) {
         this.idTransaccion = t.getIdTransaccion();
         this.monto = t.getMonto();
